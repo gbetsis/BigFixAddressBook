@@ -380,7 +380,10 @@ begin
     Application.Terminate;
   end;
 
-  strDBFileName := GetSpecialFolderPath(CSIDL_COMMON_APPDATA) + '\BigFixAddressBook\BigFixAddressBook.db';
+  if fileexists(ExtractFilePath(Application.ExeName) + 'BigFixAddressBook.db') then
+    strDBFileName := ExtractFilePath(Application.ExeName) + 'BigFixAddressBook.db'
+  else
+    strDBFileName := GetSpecialFolderPath(CSIDL_COMMON_APPDATA) + '\BigFixAddressBook\BigFixAddressBook.db';
 
   if fileexists(strDBFileName) then
   begin
@@ -402,6 +405,12 @@ begin
     FDConnection.Connected := True;
     FDQuery.Close;
     FDQuery.SQL.Clear;
+
+    //Version 0.0.0.2
+    //FDQuery.SQL.Add('CREATE TABLE "departments" ("id"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, "name"	TEXT NOT NULL UNIQUE);');
+    //FDQuery.SQL.Add('CREATE TABLE "workstations" ("id"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, "ipaddress"	TEXT NOT NULL UNIQUE, "detail"	TEXT, "department"	INTEGER, FOREIGN KEY("department") REFERENCES "departments"("id"));');
+
+
     FDQuery.SQL.Add('CREATE TABLE "departments" ("id"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, "name"	TEXT NOT NULL UNIQUE);');
     FDQuery.SQL.Add('CREATE TABLE "workstations" ("id"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, "ipaddress"	TEXT NOT NULL UNIQUE, "detail"	TEXT, "department"	INTEGER, FOREIGN KEY("department") REFERENCES "departments"("id"));');
     FDQuery.ExecSQL;

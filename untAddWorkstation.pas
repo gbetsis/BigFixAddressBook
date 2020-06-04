@@ -41,9 +41,21 @@ begin
   begin
     if btnAdd.Caption = 'Προσθήκη' then
     begin
-      frmMain.FDQuery.SQL.Text := 'INSERT INTO workstations (ipaddress, detail, department) VALUES ("' + edtIPAddress.Text + '", "' + edtDetails.Text + '", ' + IntToStr(Integer(cmbDepartment.Items.Objects[cmbDepartment.ItemIndex])) + ');';
-      frmMain.FDQuery.ExecSQL;
-      ModalResult := mrOk;
+      frmMain.FDQuery.Close;
+      frmMain.FDQuery.SQL.Text := 'SELECT id FROM workstations WHERE ipaddress = "' + edtIPAddress.Text + '";';
+      frmMain.FDQuery.Open;
+      if frmMain.FDQuery.RecordCount > 0 then
+      begin
+        ShowMessage('Υπάρχει ήδη Σταθμός Εργασίας καταχωρημένος, με την ίδια IP διεύθυνση.');
+        frmMain.FDQuery.Close;
+      end
+      else
+      begin
+        frmMain.FDQuery.Close;
+        frmMain.FDQuery.SQL.Text := 'INSERT INTO workstations (ipaddress, detail, department) VALUES ("' + edtIPAddress.Text + '", "' + edtDetails.Text + '", ' + IntToStr(Integer(cmbDepartment.Items.Objects[cmbDepartment.ItemIndex])) + ');';
+        frmMain.FDQuery.ExecSQL;
+        ModalResult := mrOk;
+      end;
     end
     else if btnAdd.Caption = 'Αποθήκευση' then
     begin

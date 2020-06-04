@@ -4,7 +4,7 @@ object frmAddDepartment: TfrmAddDepartment
   BorderStyle = bsDialog
   Caption = #928#961#959#963#952#942#954#951' '#933#960#951#961#949#963#943#945#962
   ClientHeight = 203
-  ClientWidth = 274
+  ClientWidth = 366
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -13,14 +13,22 @@ object frmAddDepartment: TfrmAddDepartment
   Font.Style = []
   OldCreateOrder = False
   Position = poMainFormCenter
+  OnCreate = FormCreate
   PixelsPerInch = 96
   TextHeight = 13
   object lblName: TLabel
-    Left = 32
-    Top = 75
+    Left = 82
+    Top = 59
     Width = 37
     Height = 13
     Caption = #908#957#959#956#945':'
+  end
+  object lblParent: TLabel
+    Left = 8
+    Top = 99
+    Width = 111
+    Height = 13
+    Caption = #928#961#959#970#963#964#940#956#949#957#951' '#933#960#951#961#949#963#943#945':'
   end
   object btnCancel: TButton
     Left = 143
@@ -43,10 +51,18 @@ object frmAddDepartment: TfrmAddDepartment
     OnClick = btnAddClick
   end
   object edtName: TEdit
-    Left = 94
-    Top = 72
+    Left = 125
+    Top = 56
     Width = 145
     Height = 21
     TabOrder = 0
+  end
+  object cmbParent: TComboBox
+    Left = 125
+    Top = 96
+    Width = 145
+    Height = 21
+    Style = csDropDownList
+    TabOrder = 3
   end
 end

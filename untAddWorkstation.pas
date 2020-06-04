@@ -78,7 +78,7 @@ end;
 
 procedure TfrmAddWorkstation.FormCreate(Sender: TObject);
 begin
-  frmMain.FDQuery.SQL.Text := 'SELECT id, name FROM departments;';
+  frmMain.FDQuery.SQL.Text := 'SELECT id, name FROM departments ORDER BY name;';
   frmMain.FDQuery.Open;
   while not frmMain.FDQuery.Eof do
   begin

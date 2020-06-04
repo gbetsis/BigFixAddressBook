@@ -12,8 +12,11 @@ type
     btnAdd: TButton;
     lblName: TLabel;
     edtName: TEdit;
+    cmbParent: TComboBox;
+    lblParent: TLabel;
     procedure btnAddClick(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
   private
     { Private declarations }
   public
@@ -31,14 +34,20 @@ uses
   untMain;
 
 procedure TfrmAddDepartment.btnAddClick(Sender: TObject);
+var
+  intID : Integer;
 begin
   if edtName.Text <> '' then
   begin
+    if cmbParent.ItemIndex > 0 then
+      intID := Tdepartment(cmbParent.Items.Objects[cmbParent.ItemIndex]).id
+    else
+      intID := 0;
 
     if btnAdd.Caption = 'Προσθήκη' then
     begin
       try
-        frmMain.FDQuery.SQL.Text := 'INSERT INTO departments (name) VALUES ("' + edtName.Text + '");';
+        frmMain.FDQuery.SQL.Text := 'INSERT INTO departments (name, parent_id) VALUES ("' + edtName.Text + '", ' + IntToStr(intID) + ');';
         frmMain.FDQuery.ExecSQL;
         frmAddDepartment.Close;
       except
@@ -68,6 +77,25 @@ end;
 procedure TfrmAddDepartment.btnCancelClick(Sender: TObject);
 begin
   ModalResult := mrCancel;
+end;
+
+procedure TfrmAddDepartment.FormCreate(Sender: TObject);
+var
+  department: Tdepartment;
+begin
+  frmMain.FDQuery.SQL.Text := 'SELECT id, name FROM departments ORDER BY name;';
+  frmMain.FDQuery.Open;
+  while not frmMain.FDQuery.Eof do
+  begin
+    //cmbDepartment.Items.Add(frmMain.FDQuery.Fields.Fields[0].AsString);
+    department := Tdepartment.Create;
+    department.id := frmMain.FDQuery.FieldByName('id').AsInteger;
+    department.name := frmMain.FDQuery.FieldByName('name').AsString;
+    cmbParent.AddItem(department.name, department);
+    frmMain.FDQuery.Next;
+  end;
+  frmMain.FDQuery.Close;
+
 end;
 
 end.

@@ -545,7 +545,7 @@ end;
 
 procedure TfrmMain.mnuAboutClick(Sender: TObject);
 begin
-  ShowMessage('Version 0.0.0.2 beta');
+  ShowMessage('Version 0.0.1.0 beta');
 end;
 
 procedure TfrmMain.mnuAddDepartmentClick(Sender: TObject);

@@ -68,6 +68,10 @@ type
     procedure btnSaveClick(Sender: TObject);
     procedure edtDetailsChange(Sender: TObject);
     procedure btnCancelClick(Sender: TObject);
+    procedure edtPCSNChange(Sender: TObject);
+    procedure edtMonitorSNChange(Sender: TObject);
+    procedure edtKeyboardSNChange(Sender: TObject);
+    procedure edtMouseSNChange(Sender: TObject);
   private
     { Private declarations }
   public
@@ -88,12 +92,16 @@ type
     ipaddress: String;
     detail: String;
     department_id: Integer;
-    department_name: String;
+    sn_pc: String;
+    sn_monitor: String;
+    sn_keyboard: String;
+    sn_mouse: String;
   end;
 
   Tdepartment = class(TObject)
     id: Integer;
     name: String;
+    parent_id: Integer;
   end;
 var
   frmMain: TfrmMain;
@@ -145,13 +153,12 @@ end;
 
 procedure TfrmMain.PopulateTreeView(Sender: TObject);
 var
-  RootNode, DeptNode, WSNode: TTreeNode;
-  CurrentDepartment: Integer;
+  RootNode, WSNode, tmpNode, DeptNode: TTreeNode;
   workStation: TworkStation;
   department: Tdepartment;
   intNodeIndex : Integer;
 begin
-  //ShowMessage(IntToStr(treMain.Items.Count));
+  //Save the currently selected node index, so we can focus to it, after the refresh.
   if treMain.Items.Count > 0 then
   begin
     if treMain.Selected.AbsoluteIndex = treMain.Items.Count - 1 then
@@ -167,43 +174,82 @@ begin
   RootNode := treMain.Items.Add(nil, 'BigFixAddressBook');
   RootNode.ImageIndex := 0;
   RootNode.SelectedIndex := 0;
-  DeptNode := RootNode;
-  CurrentDepartment := -1;
-  FDQuery.SQL.Text := 'SELECT workstations.id as workstation_id, ipaddress, detail, department, departments.id AS department_id, departments.name AS department_name FROM departments LEFT JOIN workstations ON department = departments.id ORDER BY department_id, ipaddress;';
+
+  FDQuery.SQL.Text := 'SELECT id, name, parent_id FROM departments ORDER BY parent_id, id;';
   FDQuery.Open;
+
   while not FDQuery.Eof do
   begin
     //cmbDepartment.Items.Add(frmMain.FDQuery.Fields.Fields[0].AsString);
     //cmbDepartment.AddItem(FDQuery.Fields.Fields[1].AsString, TObject(FDQuery.Fields.Fields[0].AsInteger));
-    if CurrentDepartment <> FDQuery.Fields.FieldByName('department_id').AsInteger then
+    department := Tdepartment.Create;
+    department.id := FDQuery.Fields.FieldByName('id').AsInteger;
+    department.name := FDQuery.Fields.FieldByName('name').AsString;
+    department.parent_id := FDQuery.Fields.FieldByName('parent_id').AsInteger;
+    if department.parent_id <> 0 then
     begin
-      department := Tdepartment.Create;
-      department.id := FDQuery.Fields.FieldByName('department_id').AsInteger;
-      department.name := FDQuery.Fields.FieldByName('department_name').AsString;
+      for tmpNode in treMain.Items do
+      begin
+        if TObject(tmpNode.Data) Is Tdepartment then
+        begin
+            if department.parent_id = Tdepartment(tmpNode.Data).id then
+            begin
+              DeptNode := treMain.Items.AddChildObject(tmpNode, department.name, department);
+              DeptNode.ImageIndex := 1;
+              DeptNode.SelectedIndex := 1;
+              Break;
+            end;
+        end;
+      end;
+    end
+    else
+    begin
       DeptNode := treMain.Items.AddChildObject(RootNode, department.name, department);
       DeptNode.ImageIndex := 1;
       DeptNode.SelectedIndex := 1;
-      CurrentDepartment := department.id;
-
     end;
+    //CurrentDepartment := department.id;
+    FDQuery.Next;
+  end;
 
-    if FDQuery.Fields.FieldByName('workstation_id').AsInteger > 0 then
+  FDQuery.Close;
+
+  FDQuery.SQL.Text := 'SELECT id, ipaddress, detail, department, sn_pc, sn_monitor, sn_keyboard, sn_mouse FROM workstations ORDER BY ipaddress;';
+  FDQuery.Open;
+
+  while not FDQuery.Eof do
+  begin
+    //cmbDepartment.Items.Add(frmMain.FDQuery.Fields.Fields[0].AsString);
+    //cmbDepartment.AddItem(FDQuery.Fields.Fields[1].AsString, TObject(FDQuery.Fields.Fields[0].AsInteger));
+    workStation := TWorkStation.Create;
+    workStation.id := FDQuery.Fields.FieldByName('id').AsInteger;
+    workStation.ipaddress := FDQuery.Fields.FieldByName('ipaddress').AsString;
+    workStation.detail := FDQuery.Fields.FieldByName('detail').AsString;
+    workStation.department_id := FDQuery.Fields.FieldByName('department').AsInteger;
+    workStation.sn_pc := FDQuery.Fields.FieldByName('sn_pc').AsString;
+    workStation.sn_monitor := FDQuery.Fields.FieldByName('sn_monitor').AsString;
+    workStation.sn_keyboard := FDQuery.Fields.FieldByName('sn_keyboard').AsString;
+    workStation.sn_mouse := FDQuery.Fields.FieldByName('sn_mouse').AsString;
+
+    for tmpNode in treMain.Items do
     begin
-      workStation := TworkStation.Create;
-      workStation.id := FDQuery.Fields.FieldByName('workstation_id').AsInteger;
-      workStation.ipaddress := FDQuery.Fields.FieldByName('ipaddress').AsString;
-      workStation.detail    := FDQuery.Fields.FieldByName('detail').AsString;
-      workStation.department_id := FDQuery.Fields.FieldByName('department_id').AsInteger;
-      workStation.department_name := FDQuery.Fields.FieldByName('department_name').AsString;
-      WSNode := treMain.Items.AddChildObject(DeptNode, workStation.ipaddress + ' (' + workStation.detail + ')', workStation);
-      WSNode.ImageIndex := 2;
-      WSNode.SelectedIndex := 2;
-      //workStation.Free;
+      if TObject(tmpNode.Data) Is Tdepartment then
+      begin
+          if workStation.department_id = Tdepartment(tmpNode.Data).id then
+          begin
+            WSNode := treMain.Items.AddChildObject(tmpNode, workStation.ipaddress, workStation);
+            WSNode.ImageIndex := 2;
+            WSNode.SelectedIndex := 2;
+            Break;
+          end;
+      end;
     end;
 
     FDQuery.Next;
   end;
+
   FDQuery.Close;
+
   RootNode.Expand(False);
   //treMain.Select(tmpTreeNode);
 
@@ -229,7 +275,7 @@ begin
     grpWorkstation.Enabled := False;
     grpWorkstation.Visible := False;
   end
-  else if Node.Level = 1 then
+  else if TObject(Node.Data) Is Tdepartment then
   begin
     btnConnect.Enabled := False;
     mnuPopupConnect.Enabled := False;
@@ -242,7 +288,7 @@ begin
     grpWorkstation.Enabled := False;
     grpWorkstation.Visible := False;
   end
-  else if Node.Level = 2 then
+  else if TObject(Node.Data) Is TWorkStation then
   begin
     btnConnect.Enabled := True;
     mnuPopupConnect.Enabled := True;
@@ -253,6 +299,10 @@ begin
     booChangingWorkstaionFields := True;
     edtIPAddress.Text := workStation.ipaddress;
     edtDetails.Text := workStation.detail;
+    edtPCSN.Text := workStation.sn_pc;
+    edtMonitorSN.Text := workStation.sn_monitor;
+    edtKeyboardSN.Text := workStation.sn_keyboard;
+    edtMouseSN.Text := workStation.sn_mouse;
     booChangingWorkstaionFields := False;
     btnSave.Enabled := False;
     btnCancel.Enabled := False;
@@ -273,7 +323,7 @@ begin
   with treMain.ScreenToClient(Mouse.CursorPos) do
     tmpNode := treMain.GetNodeAt(X, Y);
 
-  if (tmpNode <> nil) and (tmpNode.Level = 2) then
+  if (tmpNode <> nil) and (TObject(tmpNode.Data) Is TWorkStation) then
     //ShowMessage(IntToStr(tmpNode.AbsoluteIndex));
     actConnectExecute(Self);
 
@@ -336,7 +386,7 @@ begin
   if (edtIPAddress.Text <> '') then
   begin
     try
-      FDQuery.SQL.Text := 'UPDATE workstations SET ipaddress = "' + edtIPAddress.Text + '", detail = "' + edtDetails.Text + '" WHERE id = ' + IntToStr(grpWorkstation.Tag) + ';';
+      FDQuery.SQL.Text := 'UPDATE workstations SET ipaddress = "' + edtIPAddress.Text + '", detail = "' + edtDetails.Text + '", sn_pc = "' + edtPCSN.Text + '", sn_monitor = "' + edtMonitorSN.Text + '", sn_keyboard = "' + edtKeyboardSN.Text + '", sn_mouse = "' + edtMouseSN.Text + '" WHERE id = ' + IntToStr(grpWorkstation.Tag) + ';';
       FDQuery.ExecSQL;
       btnSave.Enabled := False;
       btnCancel.Enabled := False;
@@ -357,6 +407,42 @@ begin
 end;
 
 procedure TfrmMain.edtIPAddressChange(Sender: TObject);
+begin
+  if not booChangingWorkstaionFields then
+  begin
+    btnSave.Enabled := True;
+    btnCancel.Enabled := True;
+  end;
+end;
+
+procedure TfrmMain.edtKeyboardSNChange(Sender: TObject);
+begin
+  if not booChangingWorkstaionFields then
+  begin
+    btnSave.Enabled := True;
+    btnCancel.Enabled := True;
+  end;
+end;
+
+procedure TfrmMain.edtMonitorSNChange(Sender: TObject);
+begin
+  if not booChangingWorkstaionFields then
+  begin
+    btnSave.Enabled := True;
+    btnCancel.Enabled := True;
+  end;
+end;
+
+procedure TfrmMain.edtMouseSNChange(Sender: TObject);
+begin
+  if not booChangingWorkstaionFields then
+  begin
+    btnSave.Enabled := True;
+    btnCancel.Enabled := True;
+  end;
+end;
+
+procedure TfrmMain.edtPCSNChange(Sender: TObject);
 begin
   if not booChangingWorkstaionFields then
   begin
@@ -541,7 +627,7 @@ begin
     frmAddWorkstation.Tag := workStation.id;
     frmAddWorkstation.edtIPAddress.Text := workStation.ipaddress;
     frmAddWorkstation.edtDetails.Text := workStation.detail;
-    frmAddWorkstation.cmbDepartment.ItemIndex := frmAddWorkstation.cmbDepartment.Items.IndexOf(workStation.department_name);
+    //frmAddWorkstation.cmbDepartment.ItemIndex := frmAddWorkstation.cmbDepartment.Items.IndexOf(workStation.department_name);
     frmAddWorkstation.btnAdd.Caption := 'Αποθήκευση';
 
     if frmAddWorkstation.ShowModal = mrOK then

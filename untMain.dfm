@@ -107,6 +107,7 @@ object frmMain: TfrmMain
       Width = 136
       Height = 21
       TabOrder = 2
+      OnChange = edtKeyboardSNChange
     end
     object edtMonitorSN: TEdit
       Left = 9
@@ -114,6 +115,7 @@ object frmMain: TfrmMain
       Width = 136
       Height = 21
       TabOrder = 3
+      OnChange = edtMonitorSNChange
     end
     object edtMouseSN: TEdit
       Left = 9
@@ -121,6 +123,7 @@ object frmMain: TfrmMain
       Width = 136
       Height = 21
       TabOrder = 4
+      OnChange = edtMouseSNChange
     end
     object edtPCSN: TEdit
       Left = 9
@@ -128,6 +131,7 @@ object frmMain: TfrmMain
       Width = 136
       Height = 21
       TabOrder = 5
+      OnChange = edtPCSNChange
     end
     object btnConnect: TButton
       Left = 9

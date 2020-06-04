@@ -281,7 +281,7 @@ begin
     mnuPopupConnect.Enabled := False;
     mnuPopupEdit.Enabled := True;
     if Node.Count = 0 then
-      mnuPopupDelete.Enabled := False
+      mnuPopupDelete.Enabled := True
     else
       mnuPopupDelete.Enabled := False;
 
@@ -586,11 +586,23 @@ end;
 procedure TfrmMain.mnuPopupDeleteClick(Sender: TObject);
 var
   workStation: TworkStation;
+  department: Tdepartment;
 begin
-  workStation := TworkStation(treMain.Selected.Data);
+  if TObject(treMain.Selected.Data) Is TworkStation then
+  begin
+    workStation := TworkStation(treMain.Selected.Data);
 
-  FDQuery.SQL.Text := 'DELETE FROM workstations WHERE id = ' + IntToStr(workStation.id) + ';';
-  FDQuery.ExecSQL;
+    FDQuery.SQL.Text := 'DELETE FROM workstations WHERE id = ' + IntToStr(workStation.id) + ';';
+    FDQuery.ExecSQL;
+  end
+  else
+  if TObject(treMain.Selected.Data) Is Tdepartment then
+  begin
+    department := Tdepartment(treMain.Selected.Data);
+
+    FDQuery.SQL.Text := 'DELETE FROM departments WHERE id = ' + IntToStr(department.id) + ';';
+    FDQuery.ExecSQL;
+  end;
 
   PopulateTreeView(Self);
 end;

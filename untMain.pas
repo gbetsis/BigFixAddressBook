@@ -553,7 +553,7 @@ begin
   frmAddDepartment := TfrmAddDepartment.Create(Application);
   if frmAddDepartment.ShowModal = mrOK then
   begin
-    //PopulateTreeView(Self);
+    PopulateTreeView(Self);
     frmAddDepartment.Free;
   end
   else
@@ -635,7 +635,7 @@ var
   workStation: TworkStation;
   department: Tdepartment;
 begin
-  if treMain.Selected.Level = 1 then
+  if TObject(treMain.Selected.Data) Is Tdepartment then
   begin
     department := Tdepartment(treMain.Selected.Data);
 
@@ -654,7 +654,7 @@ begin
       frmAddDepartment.Free;
     end;
   end
-  else if treMain.Selected.Level = 2 then
+  else if TObject(treMain.Selected.Data) Is TworkStation then
   begin
     workStation := TworkStation(treMain.Selected.Data);
 

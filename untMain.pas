@@ -411,14 +411,46 @@ begin
     //FDQuery.SQL.Add('CREATE TABLE "workstations" ("id"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, "ipaddress"	TEXT NOT NULL UNIQUE, "detail"	TEXT, "department"	INTEGER, FOREIGN KEY("department") REFERENCES "departments"("id"));');
 
 
-    FDQuery.SQL.Add('CREATE TABLE "departments" ("id"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, "name"	TEXT NOT NULL UNIQUE);');
-    FDQuery.SQL.Add('CREATE TABLE "workstations" ("id"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, "ipaddress"	TEXT NOT NULL UNIQUE, "detail"	TEXT, "department"	INTEGER, FOREIGN KEY("department") REFERENCES "departments"("id"));');
+    FDQuery.SQL.Add('CREATE TABLE "departments" ("id"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, "name"	TEXT NOT NULL UNIQUE, "parent_id"	INTEGER NOT NULL);');
+    FDQuery.SQL.Add('CREATE TABLE "workstations" ("id"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, "ipaddress"	TEXT NOT NULL UNIQUE, "detail"	TEXT, "department" INTEGER, ' + '"sn_pc" TEXT, "sn_monitor" TEXT, "sn_keyboard" TEXT, "sn_mouse" TEXT, FOREIGN KEY("department") REFERENCES "departments"("id"));');
     FDQuery.ExecSQL;
   end
   else
-  begin
+  begin //Database exists.
+
     FDConnection.Params.Database := strDBFileName;
     FDConnection.Connected := True;
+
+    // I will check to see if I need to upgrade departments table
+    FDQuery.Close;
+    FDQuery.SQL.Text := 'PRAGMA table_info(departments);';
+    FDQuery.Open;
+    if FDQuery.RecordCount = 2 then
+    begin // I have detected old database version. I have to upgrade it.
+      FDQuery.Close;
+      FDQuery.SQL.Clear;
+      FDQuery.SQL.Add('ALTER TABLE departments ADD parent_id INTEGER;');
+      FDQuery.ExecSQL;
+      FDQuery.Close;
+    end;
+
+    // I will check to see if I need to upgrade workstations table
+    FDQuery.Close;
+    FDQuery.SQL.Text := 'PRAGMA table_info(workstations);';
+    FDQuery.Open;
+    if FDQuery.RecordCount = 4 then
+    begin // I have detected old database version. I have to upgrade it.
+      FDQuery.Close;
+      FDQuery.SQL.Clear;
+      FDQuery.SQL.Add('ALTER TABLE workstations ADD "sn_pc" TEXT;');
+      FDQuery.SQL.Add('ALTER TABLE workstations ADD "sn_monitor" TEXT;');
+      FDQuery.SQL.Add('ALTER TABLE workstations ADD "sn_keyboard" TEXT;');
+      FDQuery.SQL.Add('ALTER TABLE workstations ADD "sn_mouse" TEXT;');
+      FDQuery.ExecSQL;
+      FDQuery.Close;
+    end;
+
+
   end;
 
   PopulateTreeView(Self);

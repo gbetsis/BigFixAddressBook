@@ -600,8 +600,31 @@ begin
   begin
     department := Tdepartment(treMain.Selected.Data);
 
-    FDQuery.SQL.Text := 'DELETE FROM departments WHERE id = ' + IntToStr(department.id) + ';';
-    FDQuery.ExecSQL;
+    FDQuery.Close;
+    FDQuery.SQL.Text := 'SELECT * FROM workstations WHERE department = ' + IntToStr(department.id) + ';';
+    FDQuery.Open;
+    if FDQuery.RecordCount > 0 then
+    begin
+      ShowMessage('Δεν μπορεί να γίνει διαγραφή, καθώς υπάρχουν σταθμοί εργασίας σε αυτή την Υπηρεσία.');
+      FDQuery.Close;
+    end
+    else
+    begin
+      FDQuery.Close;
+      FDQuery.SQL.Text := 'SELECT * FROM departments WHERE parent_id = ' + IntToStr(department.id) + ';';
+      FDQuery.Open;
+      if FDQuery.RecordCount > 0 then
+      begin
+        ShowMessage('Δεν μπορεί να γίνει διαγραφή, καθώς υπάρχουν Υπηρεσίες κάτω από αυτή την Υπηρεσία.');
+        FDQuery.Close;
+      end
+      else
+      begin
+        FDQuery.SQL.Text := 'DELETE FROM departments WHERE id = ' + IntToStr(department.id) + ';';
+        FDQuery.ExecSQL;
+      end;
+    end;
+
   end;
 
   PopulateTreeView(Self);

@@ -552,7 +552,7 @@ end;
 
 procedure TfrmMain.mnuAboutClick(Sender: TObject);
 begin
-  ShowMessage('Version 0.0.1.0 beta');
+  ShowMessage('Version 0.0.1.0 beta' + #13#10 + 'Created by George Betsis');
 end;
 
 procedure TfrmMain.mnuAddDepartmentClick(Sender: TObject);

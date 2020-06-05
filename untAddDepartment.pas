@@ -58,7 +58,7 @@ begin
     else if btnAdd.Caption = 'Αποθήκευση' then
     begin
       try
-        frmMain.FDQuery.SQL.Text := 'UPDATE departments SET name = "' + edtName.Text + '" WHERE id = ' + IntToStr(tag) + ';';
+        frmMain.FDQuery.SQL.Text := 'UPDATE departments SET name = "' + edtName.Text + '", parent_id = ' + IntToStr(intID) + ' WHERE id = ' + IntToStr(tag) + ';';
         frmMain.FDQuery.ExecSQL;
         frmAddDepartment.Close;
       except

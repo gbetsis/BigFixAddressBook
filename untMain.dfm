@@ -174,7 +174,7 @@ object frmMain: TfrmMain
       end
     end
     object mnuEdit: TMenuItem
-      Caption = #917#960#949#958#949#961#947#945#963#943#945
+      Caption = #928#961#959#963#952#942#954#951
       object mnuAddDepartment: TMenuItem
         Caption = #928#961#959#963#952#942#954#951' '#933#960#951#961#949#963#943#945#962
         GroupIndex = 2

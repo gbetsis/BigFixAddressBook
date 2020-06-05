@@ -96,12 +96,14 @@ type
     sn_monitor: String;
     sn_keyboard: String;
     sn_mouse: String;
+    department_name: String;
   end;
 
   Tdepartment = class(TObject)
     id: Integer;
     name: String;
     parent_id: Integer;
+    parent_name: String;
   end;
 var
   frmMain: TfrmMain;
@@ -175,7 +177,7 @@ begin
   RootNode.ImageIndex := 0;
   RootNode.SelectedIndex := 0;
 
-  FDQuery.SQL.Text := 'SELECT id, name, parent_id FROM departments ORDER BY parent_id, id;';
+  FDQuery.SQL.Text := 'SELECT dep1.id AS id, dep1.name AS name, dep1.parent_id AS parent_id, dep2.name AS parent_name FROM departments AS dep1 LEFT JOIN departments AS dep2 ON dep1.parent_id = dep2.id ORDER BY dep1.parent_id, dep1.id;';
   FDQuery.Open;
 
   while not FDQuery.Eof do
@@ -186,6 +188,7 @@ begin
     department.id := FDQuery.Fields.FieldByName('id').AsInteger;
     department.name := FDQuery.Fields.FieldByName('name').AsString;
     department.parent_id := FDQuery.Fields.FieldByName('parent_id').AsInteger;
+    department.parent_name := FDQuery.Fields.FieldByName('parent_name').AsString;
     if department.parent_id <> 0 then
     begin
       for tmpNode in treMain.Items do
@@ -214,7 +217,7 @@ begin
 
   FDQuery.Close;
 
-  FDQuery.SQL.Text := 'SELECT id, ipaddress, detail, department, sn_pc, sn_monitor, sn_keyboard, sn_mouse FROM workstations ORDER BY ipaddress;';
+  FDQuery.SQL.Text := 'SELECT workstations.id as id, ipaddress, detail, department, sn_pc, sn_monitor, sn_keyboard, sn_mouse, name as department_name FROM workstations LEFT JOIN departments ON workstations.department = departments.id ORDER BY ipaddress;';
   FDQuery.Open;
 
   while not FDQuery.Eof do
@@ -230,6 +233,7 @@ begin
     workStation.sn_monitor := FDQuery.Fields.FieldByName('sn_monitor').AsString;
     workStation.sn_keyboard := FDQuery.Fields.FieldByName('sn_keyboard').AsString;
     workStation.sn_mouse := FDQuery.Fields.FieldByName('sn_mouse').AsString;
+    workStation.department_name := FDQuery.Fields.FieldByName('department_name').AsString;
 
     for tmpNode in treMain.Items do
     begin
@@ -237,7 +241,10 @@ begin
       begin
           if workStation.department_id = Tdepartment(tmpNode.Data).id then
           begin
-            WSNode := treMain.Items.AddChildObject(tmpNode, workStation.ipaddress, workStation);
+            if workstation.detail <> '' then
+                WSNode := treMain.Items.AddChildObject(tmpNode, workStation.ipaddress + ' (' + workstation.detail + ')', workStation)
+            else
+              WSNode := treMain.Items.AddChildObject(tmpNode, workStation.ipaddress, workStation);
             WSNode.ImageIndex := 2;
             WSNode.SelectedIndex := 2;
             Break;
@@ -566,6 +573,8 @@ end;
 procedure TfrmMain.mnuAddWorkStationClick(Sender: TObject);
 begin
   frmAddWorkstation := TfrmAddWorkstation.Create(Application);
+  frmAddWorkstation.Caption := 'Προσθήκη Σταθμού Εργασίας';
+  frmAddWorkstation.btnAdd.Caption := 'Προσθήκη';
   if frmAddWorkstation.ShowModal = mrOK then
   begin
     PopulateTreeView(Self);
@@ -642,6 +651,9 @@ begin
     frmAddDepartment := TfrmAddDepartment.Create(Application);
     frmAddDepartment.Tag := department.id;
     frmAddDepartment.edtName.Text := department.name;
+    if department.parent_id > 0 then
+      frmAddDepartment.cmbParent.ItemIndex := frmAddDepartment.cmbParent.Items.IndexOf(department.parent_name);
+    frmAddDepartment.Caption := 'Επεξεργασία Υπηρεσίας';
     frmAddDepartment.btnAdd.Caption := 'Αποθήκευση';
 
     if frmAddDepartment.ShowModal = mrOK then
@@ -662,7 +674,8 @@ begin
     frmAddWorkstation.Tag := workStation.id;
     frmAddWorkstation.edtIPAddress.Text := workStation.ipaddress;
     frmAddWorkstation.edtDetails.Text := workStation.detail;
-    //frmAddWorkstation.cmbDepartment.ItemIndex := frmAddWorkstation.cmbDepartment.Items.IndexOf(workStation.department_name);
+    frmAddWorkstation.cmbDepartment.ItemIndex := frmAddWorkstation.cmbDepartment.Items.IndexOf(workStation.department_name);
+    frmAddWorkstation.Caption := 'Επεξεργασία Σταθμού Εργασίας';
     frmAddWorkstation.btnAdd.Caption := 'Αποθήκευση';
 
     if frmAddWorkstation.ShowModal = mrOK then
